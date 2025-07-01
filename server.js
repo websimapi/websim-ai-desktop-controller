@@ -5,6 +5,7 @@ const robot = require('robotjs');
 const screenshot = require('screenshot-desktop');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver');
 
 class AIDesktopServer {
     constructor() {
@@ -25,6 +26,61 @@ class AIDesktopServer {
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'index.html'));
         });
+
+        // Add download route for the desktop application
+        this.app.get('/download', (req, res) => {
+            this.createDesktopPackage(res);
+        });
+    }
+
+    async createDesktopPackage(res) {
+        try {
+            const archive = archiver('zip', {
+                zlib: { level: 9 }
+            });
+
+            res.attachment('ai-desktop-controller.zip');
+            archive.pipe(res);
+
+            // Add main files to the zip
+            archive.file(path.join(__dirname, 'server.js'), { name: 'server.js' });
+            archive.file(path.join(__dirname, 'package.json'), { name: 'package.json' });
+            archive.file(path.join(__dirname, 'README.md'), { name: 'README.md' });
+            archive.file(path.join(__dirname, 'index.html'), { name: 'index.html' });
+
+            // Add installation instructions
+            const installInstructions = `# AI Desktop Controller - Desktop Application
+
+## Installation Instructions
+
+1. Extract this zip file to your desired location
+2. Open terminal/command prompt in the extracted folder
+3. Run: npm install
+4. Run: npm start
+5. Open http://localhost:3000 in your browser
+
+## Requirements
+
+- Node.js 14.0.0 or higher
+- npm (comes with Node.js)
+
+## Notes
+
+- The application will request permissions to control your mouse and keyboard
+- Make sure to allow these permissions for full functionality
+- All terminal commands will require confirmation before execution
+
+Enjoy using AI Desktop Controller!
+`;
+
+            archive.append(installInstructions, { name: 'INSTALL.md' });
+
+            archive.finalize();
+
+        } catch (error) {
+            console.error('Error creating desktop package:', error);
+            res.status(500).json({ error: 'Failed to create desktop package' });
+        }
     }
 
     setupSocketHandlers() {
@@ -327,4 +383,3 @@ Respond with a plan of what you want to do, and if needed, specify the exact act
 // Start the server
 const server = new AIDesktopServer();
 server.start();
-

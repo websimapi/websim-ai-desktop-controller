@@ -26,6 +26,20 @@
             text-align: center;
             color: white;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .header a {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            display: inline-block;
         }
 
         .main-container {
@@ -321,6 +335,11 @@
     <div class="header">
         <h1>🤖 AI Desktop Controller</h1>
         <div class="status-indicator" id="connectionStatus"></div>
+        <div style="position: absolute; top: 1rem; left: 1rem;">
+            <a href="/download" class="btn secondary" style="text-decoration: none; display: inline-block;">
+                📦 Download Desktop App
+            </a>
+        </div>
     </div>
 
     <div class="main-container">
@@ -597,4 +616,3 @@
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-
