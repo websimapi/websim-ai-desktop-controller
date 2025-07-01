@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Desktop Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            text-align: center;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .screenshot-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .screenshot-image {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screenshot-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(238, 90, 111, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 111, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .btn.secondary:hover {
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 300px;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin-left: 2rem;
+        }
+
+        .message.ai {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            margin-right: 2rem;
+        }
+
+        .message.system {
+            background: rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-field {
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+            resize: vertical;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .voice-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(238, 90, 111, 0.3);
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .confirmation-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            color: white;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+
+        .status-indicator.connected {
+            background: #2ed573;
+        }
+
+        .ai-status {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .thinking {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .thinking::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Desktop Controller</h1>
+        <div class="status-indicator" id="connectionStatus"></div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel screenshot-container">
+                <h3>Desktop View</h3>
+                <div class="screenshot-image" id="screenshotContainer">
+                    <p>No screenshot available</p>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="captureBtn">📸 Capture Screenshot</button>
+                    <button class="btn secondary" id="autoToggleBtn">🔄 Auto Capture: OFF</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="panel chat-container">
+                <h3>AI Assistant</h3>
+                <div class="ai-status" id="aiStatus">Ready to help</div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="input-container">
+                    <div class="input-group">
+                        <textarea 
+                            id="messageInput" 
+                            class="input-field" 
+                            placeholder="Tell the AI what you'd like to do..."
+                            rows="2"
+                        ></textarea>
+                        <div class="voice-controls">
+                            <button class="voice-btn" id="voiceBtn" title="Voice Input">🎤</button>
+                            <button class="btn" id="sendBtn">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <h3>⚠️ Confirmation Required</h3>
+            <p id="confirmationMessage"></p>
+            <div class="confirmation-buttons">
+                <button class="btn" id="confirmYes">✅ Allow</button>
+                <button class="btn secondary" id="confirmNo">❌ Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class AIDesktopController {
+            constructor() {
+                this.socket = io();
+                this.isRecording = false;
+                this.autoCapture = false;
+                this.autoCaptureInterval = null;
+                this.recognition = null;
+                this.conversationHistory = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.setupSocketListeners();
+                this.setupSpeechRecognition();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    connectionStatus: document.getElementById('connectionStatus'),
+                    screenshotContainer: document.getElementById('screenshotContainer'),
+                    captureBtn: document.getElementById('captureBtn'),
+                    autoToggleBtn: document.getElementById('autoToggleBtn'),
+                    chatMessages: document.getElementById('chatMessages'),
+                    messageInput: document.getElementById('messageInput'),
+                    sendBtn: document.getElementById('sendBtn'),
+                    voiceBtn: document.getElementById('voiceBtn'),
+                    aiStatus: document.getElementById('aiStatus'),
+                    confirmationModal: document.getElementById('confirmationModal'),
+                    confirmationMessage: document.getElementById('confirmationMessage'),
+                    confirmYes: document.getElementById('confirmYes'),
+                    confirmNo: document.getElementById('confirmNo')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.captureBtn.addEventListener('click', () => this.captureScreenshot());
+                this.elements.autoToggleBtn.addEventListener('click', () => this.toggleAutoCapture());
+                this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.elements.voiceBtn.addEventListener('click', () => this.toggleVoiceRecording());
+                this.elements.confirmYes.addEventListener('click', () => this.handleConfirmation(true));
+                this.elements.confirmNo.addEventListener('click', () => this.handleConfirmation(false));
+                
+                this.elements.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            setupSocketListeners() {
+                this.socket.on('connect', () => {
+                    this.elements.connectionStatus.classList.add('connected');
+                    this.addMessage('system', 'Connected to AI Desktop Controller');
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.elements.connectionStatus.classList.remove('connected');
+                    this.addMessage('system', 'Disconnected from server');
+                });
+
+                this.socket.on('screenshot', (data) => {
+                    this.displayScreenshot(data.image);
+                });
+
+                this.socket.on('aiResponse', (data) => {
+                    this.addMessage('ai', data.message);
+                    this.elements.aiStatus.textContent = 'Ready to help';
+                    this.conversationHistory.push({ role: 'assistant', content: data.message });
+                });
+
+                this.socket.on('confirmationRequired', (data) => {
+                    this.showConfirmation(data.action, data.command);
+                });
+
+                this.socket.on('actionExecuted', (data) => {
+                    this.addMessage('system', `Action executed: ${data.action}`);
+                });
+
+                this.socket.on('error', (data) => {
+                    this.addMessage('system', `Error: ${data.message}`);
+                    this.elements.aiStatus.textContent = 'Ready to help';
+                });
+            }
+
+            setupSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    this.recognition.lang = 'en-US';
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        this.elements.messageInput.value = transcript;
+                        this.stopVoiceRecording();
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.stopVoiceRecording();
+                    };
+
+                    this.recognition.onend = () => {
+                        this.stopVoiceRecording();
+                    };
+                } else {
+                    this.elements.voiceBtn.style.display = 'none';
+                }
+            }
+
+            captureScreenshot() {
+                this.socket.emit('captureScreenshot');
+            }
+
+            toggleAutoCapture() {
+                this.autoCapture = !this.autoCapture;
+                this.elements.autoToggleBtn.textContent = `🔄 Auto Capture: ${this.autoCapture ? 'ON' : 'OFF'}`;
+                
+                if (this.autoCapture) {
+                    this.autoCaptureInterval = setInterval(() => {
+                        this.captureScreenshot();
+                    }, 5000);
+                } else {
+                    if (this.autoCaptureInterval) {
+                        clearInterval(this.autoCaptureInterval);
+                        this.autoCaptureInterval = null;
+                    }
+                }
+            }
+
+            displayScreenshot(imageData) {
+                this.elements.screenshotContainer.innerHTML = `<img src="data:image/png;base64,${imageData}" alt="Desktop Screenshot">`;
+            }
+
+            async sendMessage() {
+                const message = this.elements.messageInput.value.trim();
+                if (!message) return;
+
+                this.addMessage('user', message);
+                this.elements.messageInput.value = '';
+                this.elements.aiStatus.textContent = 'AI is thinking';
+                this.elements.aiStatus.classList.add('thinking');
+
+                this.conversationHistory.push({ role: 'user', content: message });
+
+                // Get current screenshot for context
+                this.socket.emit('captureScreenshot');
+                
+                // Send message to AI
+                setTimeout(() => {
+                    this.socket.emit('sendToAI', {
+                        message: message,
+                        conversationHistory: this.conversationHistory.slice(-10)
+                    });
+                }, 1000);
+            }
+
+            toggleVoiceRecording() {
+                if (!this.recognition) return;
+
+                if (this.isRecording) {
+                    this.stopVoiceRecording();
+                } else {
+                    this.startVoiceRecording();
+                }
+            }
+
+            startVoiceRecording() {
+                this.isRecording = true;
+                this.elements.voiceBtn.classList.add('recording');
+                this.elements.voiceBtn.textContent = '🔴';
+                this.recognition.start();
+            }
+
+            stopVoiceRecording() {
+                this.isRecording = false;
+                this.elements.voiceBtn.classList.remove('recording');
+                this.elements.voiceBtn.textContent = '🎤';
+                if (this.recognition) {
+                    this.recognition.stop();
+                }
+            }
+
+            addMessage(type, content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = content;
+                this.elements.chatMessages.appendChild(messageDiv);
+                this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+                
+                if (type !== 'thinking') {
+                    this.elements.aiStatus.classList.remove('thinking');
+                }
+            }
+
+            showConfirmation(action, command) {
+                this.elements.confirmationMessage.textContent = `The AI wants to execute: "${command}". Do you want to allow this action?`;
+                this.elements.confirmationModal.style.display = 'flex';
+                this.pendingAction = { action, command };
+            }
+
+            handleConfirmation(approved) {
+                this.elements.confirmationModal.style.display = 'none';
+                
+                if (this.pendingAction) {
+                    this.socket.emit('confirmation', {
+                        action: this.pendingAction.action,
+                        command: this.pendingAction.command,
+                        approved: approved
+                    });
+                    this.pendingAction = null;
+                }
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new AIDesktopController();
+        });
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
